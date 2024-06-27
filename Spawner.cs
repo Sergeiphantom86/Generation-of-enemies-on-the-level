@@ -5,9 +5,9 @@ using UnityEngine.Pool;
 
 public class Spawner : MonoBehaviour
 {
-    [SerializeField] private List<Transform> _spawnPoints;
     [SerializeField] private Enemy _prefab;
-    [SerializeField] private GameObject _target;
+    [SerializeField] private List<Transform> _spawnPoints;
+    [SerializeField] private List<GameObject> _target;
 
     private ObjectPool<Enemy> _pool;
 
@@ -16,12 +16,29 @@ public class Spawner : MonoBehaviour
 
     private void Awake()
     {
-        _pool = new ObjectPool<Enemy>(Create, GetFromPool, ReleaseInPool, Destroy, true, _poolCapacity, _poolMaxSize);
+        _pool = new ObjectPool<Enemy>(
+            Create, 
+            GetFromPool, 
+            ReleaseInPool, 
+            Destroy, 
+            true, 
+            _poolCapacity, 
+            _poolMaxSize);
     }
 
     private void Start()
     {
-        StartCoroutine(SpawnEnemyWithRate());
+        StartCoroutine(WinWithDelay());
+    }
+
+    private void OnEnable()
+    {
+        Enemy._onEnemyMove += SpecifyDirection;
+    }
+
+    private void OnDisable()
+    {
+        Enemy._onEnemyMove -= SpecifyDirection;
     }
 
     private Enemy Create()
@@ -48,10 +65,13 @@ public class Spawner : MonoBehaviour
 
     private void SpecifyDirection(Enemy enemy)
     {
-        enemy.SetPointInterest(_target);
+        if (_target.Count >= enemy.GetTargetIndex())
+        {
+            enemy.SetPointInterest(_target[enemy.SetTargetIndex()]);
+        }
     }
 
-    private IEnumerator SpawnEnemyWithRate()
+    private IEnumerator WinWithDelay()
     {
         int repeatRate = 2;
 
