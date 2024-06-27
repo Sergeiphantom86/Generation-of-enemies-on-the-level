@@ -1,21 +1,34 @@
+using System;
 using UnityEngine;
 
 public class Enemy : MonoBehaviour
 {
-    private readonly float _speedMovement = 0.05f;
-    private readonly float _growthRates = 0.1f;
-
     private GameObject _target;
+
+    private float _speedMovement = 0.05f;
+    private float _growthRates = 0.1f;
+    private int _targetIndex;
+
+    public static Action<Enemy> _onEnemyMove;
 
     private void Awake()
     {
+        _targetIndex = 0;
         _target = new();
     }
 
     private void FixedUpdate()
     {
         IncreaseSize();
-        MovGoal();
+        MovePosition();
+    }
+
+    private void OnCollisionEnter(Collision collision)
+    {
+        if (collision.collider.GetComponent<Target>())
+        {
+            _onEnemyMove?.Invoke(this);
+        }
     }
 
     public void IncreaseSize()
@@ -26,7 +39,7 @@ public class Enemy : MonoBehaviour
         }
     }
 
-    private void MovGoal()
+    private void MovePosition()
     {
         if (transform.localScale.x >= 1)
         {
@@ -38,5 +51,15 @@ public class Enemy : MonoBehaviour
     public void SetPointInterest(GameObject target)
     {
         _target = target;
+    }
+
+    public int SetTargetIndex()
+    {
+        return _targetIndex++;
+    }
+
+    public int GetTargetIndex()
+    {
+        return _targetIndex;
     }
 }
