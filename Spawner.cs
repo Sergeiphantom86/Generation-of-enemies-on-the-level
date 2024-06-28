@@ -1,13 +1,13 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Pool;
+using System.Collections;
+using System.Collections.Generic;
 
 public class Spawner : MonoBehaviour
 {
     [SerializeField] private Enemy _prefab;
+    [SerializeField] private Transform _target;
     [SerializeField] private List<Transform> _spawnPoints;
-    [SerializeField] private List<GameObject> _target;
 
     private ObjectPool<Enemy> _pool;
 
@@ -17,12 +17,12 @@ public class Spawner : MonoBehaviour
     private void Awake()
     {
         _pool = new ObjectPool<Enemy>(
-            Create, 
-            GetFromPool, 
-            ReleaseInPool, 
-            Destroy, 
-            true, 
-            _poolCapacity, 
+            Create,
+            GetFromPool,
+            ReleaseInPool,
+            Destroy,
+            true,
+            _poolCapacity,
             _poolMaxSize);
     }
 
@@ -31,26 +31,16 @@ public class Spawner : MonoBehaviour
         StartCoroutine(WinWithDelay());
     }
 
-    private void OnEnable()
-    {
-        Enemy._onEnemyMove += SpecifyDirection;
-    }
-
-    private void OnDisable()
-    {
-        Enemy._onEnemyMove -= SpecifyDirection;
-    }
-
     private Enemy Create()
     {
-        return Instantiate(_prefab, _spawnPoints[GetIndexSpawnPoint()].transform.position, Quaternion.identity);
+        return Instantiate(_prefab, _spawnPoints[GetIndexSpawnPoint()].position, Quaternion.identity);
     }
 
     private void GetFromPool(Enemy enemy)
     {
         enemy.gameObject.SetActive(true);
 
-        SpecifyDirection(enemy);
+        enemy.SetTargetPosition(_target.position);
     }
 
     private void ReleaseInPool(Enemy enemy)
@@ -61,14 +51,6 @@ public class Spawner : MonoBehaviour
     private int GetIndexSpawnPoint()
     {
         return Random.Range(0, _spawnPoints.Count);
-    }
-
-    private void SpecifyDirection(Enemy enemy)
-    {
-        if (_target.Count >= enemy.GetTargetIndex())
-        {
-            enemy.SetPointInterest(_target[enemy.SetTargetIndex()]);
-        }
     }
 
     private IEnumerator WinWithDelay()
